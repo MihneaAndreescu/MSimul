@@ -12,7 +12,7 @@ class TableSingleton : public sf::Drawable
 {
 private:
 
-    static const int m_size = 200;
+    static const int m_size = 300;
     sf::VertexArray m_vertexArray;
     sf::Color m_colors[256];
     float m_elapsed = 0;
@@ -46,7 +46,7 @@ private:
             }
         }
     }
-
+    std::vector<int> cols;
 public:
 
     void update(float dt, sf::Vector2f mousePosition, bool isLeftMouseButtonPressed, float radius)
@@ -96,9 +96,9 @@ public:
                     m_newElements[i][j] = 0;
                 }
             }
-
-            for (int y = m_size - 1; y >= 0; y--)
+            for (int y = 0; y < m_size; y++)
             {
+                cols.clear();
                 for (int x = 0; x < m_size; x++)
                 {
                     if (m_elements[x][y] == 1)
@@ -108,74 +108,82 @@ public:
                             continue;
                         }
                         assert(y - 1 >= 0);
-                        if (m_elements[x][y - 1] == 0)
+                        if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
                         {
+                            assert(m_newElements[x][y - 1] == 0);
                             m_newElements[x][y - 1] = m_elements[x][y];
+                            continue;
+                        }
+                        if (x + 1 < m_size && m_newElements[x + 1][y-1] == 0 && m_elements[x + 1][y-1] == 0)
+                        {
+                            assert(m_newElements[x + 1][y-1] == 0);
+                            m_newElements[x + 1][y-1] = m_elements[x][y];
+                            continue;
+                        }
+                        if (x - 1 >= 0 && m_newElements[x - 1][y - 1] == 0 && m_elements[x - 1][y - 1] == 0)
+                        {
+                            assert(m_newElements[x - 1][y - 1] == 0);
+                            m_newElements[x - 1][y - 1] = m_elements[x][y];
                             continue;
                         }
                         if (rng() & 1)
                         {
-                            if ((x - 1 < 0) || (x - 1 >= 0 && m_newElements[x - 1][y - 1] == 0 && m_elements[x - 1][y - 1] == 0))
+                            if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
                             {
-                                m_newElements[x - 1][y - 1] = m_elements[x][y];
-                                continue;
-                            }
-                            if ((x + 1 >= m_size) || (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0))
-                            {
-                                m_newElements[x + 1][y - 1] = m_elements[x][y];
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            if ((x - 1 < 0) || (x - 1 >= 0 && m_newElements[x - 1][y - 1] == 0 && m_elements[x - 1][y - 1] == 0))
-                            {
-                                m_newElements[x - 1][y - 1] = m_elements[x][y];
-                                continue;
-                            }
-                            if ((x + 1 >= m_size) || (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0))
-                            {
-                                m_newElements[x + 1][y - 1] = m_elements[x][y];
-                                continue;
-                            }
-                        }
-                        if (rng() & 1)
-                        {
-                            if ((x - 1 < 0) || (x - 1 >= 0 && m_newElements[x - 1][y] == 0 && m_elements[x - 1][y] == 0))
-                            {
-                                m_newElements[x - 1][y] = m_elements[x][y];
-                                continue;
-                            }
-                            if ((x + 1 >= m_size) || (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0))
-                            {
+                                assert(m_newElements[x + 1][y] == 0);
                                 m_newElements[x + 1][y] = m_elements[x][y];
                                 continue;
                             }
+                            cols.push_back(x);
                         }
                         else
                         {
-                            if ((x + 1 >= m_size) || (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0))
-                            {
-                                m_newElements[x + 1][y] = m_elements[x][y];
-                                continue;
-                            }
-                            if ((x - 1 < 0) || (x - 1 >= 0 && m_newElements[x - 1][y] == 0 && m_elements[x - 1][y] == 0))
-                            {
-                                m_newElements[x - 1][y] = m_elements[x][y];
-                                continue;
-                            }
+                            cols.push_back(x);
                         }
-                        m_newElements[x][y] = m_elements[x][y];
                         continue;
                     }
                     if (m_elements[x][y] == 2)
                     {
+                        assert(m_newElements[x][y] == 0);
                         m_newElements[x][y] = m_elements[x][y];
                         continue;
                     }            
                     if (m_elements[x][y] == 3)
                     {
+                        if (y == 0)
+                        {
+                            continue;
+                        }
+                        if (m_newElements[x][y - 1])
+                        {
+                            if (rng() % 10 <= 2 ||1)
+                            {
+                                m_newElements[x][y - 1] = 0;
+                            }
+                            else
+                            {
+                                m_newElements[x][y - 1] = m_elements[x][y];
+                            }
+                            continue;
+                        }
+                        assert(m_newElements[x][y - 1] == 0);
                         m_newElements[x][y - 1] = m_elements[x][y];
+                        continue;
+                    }
+                }
+                if (!cols.empty())
+                {
+                    reverse(cols.begin(), cols.end());
+                    for (auto& x : cols)
+                    {
+                        if (x - 1 >= 0 && m_newElements[x - 1][y] == 0 && m_elements[x - 1][y] == 0)
+                        {
+                            assert(m_newElements[x - 1][y] == 0);
+                            m_newElements[x - 1][y] = m_elements[x][y];
+                            continue;
+                        }
+                        assert(m_newElements[x][y] == 0);
+                        m_newElements[x][y] = m_elements[x][y];
                         continue;
                     }
                 }
@@ -247,7 +255,7 @@ int main()
     sf::Clock frameClock;
     int fps = 0;
     bool pressed = sf::Mouse::isButtonPressed(sf::Mouse::Left);
-    float radius = 0.5;
+    float radius = 0.5 * 2;
 
     while (window.isOpen())
     {
