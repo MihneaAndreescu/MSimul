@@ -318,6 +318,11 @@ public:
                             m_newElements[x][y - 1] = 5;
                             continue;
                         }
+                        if (m_elements[x][y - 1] == 6 && m_newElements[x][y - 1] == 6)
+                        {
+                            m_newElements[x][y - 1] = 5;
+                            continue;
+                        }
                         if (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0)
                         {
                             assert(m_newElements[x + 1][y - 1] == 0);
@@ -336,6 +341,16 @@ public:
                             continue;
                         }
                         if (x - 1 >= 0 && m_newElements[x - 1][y] == 1)
+                        {
+                            m_elements[x - 1][y] = 5;
+                            continue;
+                        }
+                        if (x + 1 < m_size && m_elements[x + 1][y] == 6)
+                        {
+                            m_elements[x + 1][y] = 5;
+                            continue;
+                        }
+                        if (x - 1 >= 0 && m_newElements[x - 1][y] == 6)
                         {
                             m_elements[x - 1][y] = 5;
                             continue;
