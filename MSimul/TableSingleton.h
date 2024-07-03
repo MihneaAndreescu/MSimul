@@ -398,6 +398,21 @@ public:
                         {
                             continue;
                         }
+                        if (getRandom() % 2 == 0)
+                        {
+                            if (y + 1 < m_size && (m_elements[x][y + 1] == 1 || m_elements[x][y + 1] == 5))
+                            {
+                                continue;
+                            }
+                            if (x + 1 < m_size && (m_elements[x + 1][y] == 1 || m_elements[x][y + 1] == 5))
+                            {
+                                continue;
+                            }
+                            if (x - 1 >= 0 && (m_elements[x - 1][y] == 1 || m_elements[x][y + 1] == 5))
+                            {
+                                continue;
+                            }
+                        }
                         if (getRandom() % 10 != 0)
                         {
                             m_newExtra0[x][y] = m_extra0[x][y];
@@ -450,7 +465,7 @@ public:
                             if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
                             {
                                 assert(m_newElements[x - 1][y + 1] == 0);
-                                m_newExtra0[x-1][y+1] = m_extra0[x][y];
+                                m_newExtra0[x - 1][y + 1] = m_extra0[x][y];
                                 m_newElements[x - 1][y + 1] = m_elements[x][y];
                                 continue;
                             }
@@ -460,14 +475,14 @@ public:
                             if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
                             {
                                 assert(m_newElements[x - 1][y + 1] == 0);
-                                m_newExtra0[x-1][y+1] = m_extra0[x][y];
+                                m_newExtra0[x - 1][y + 1] = m_extra0[x][y];
                                 m_newElements[x - 1][y + 1] = m_elements[x][y];
                                 continue;
                             }
                             if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
                             {
                                 assert(m_newElements[x + 1][y + 1] == 0);
-                                m_newExtra0[x+1][y+1] = m_extra0[x][y];
+                                m_newExtra0[x + 1][y + 1] = m_extra0[x][y];
                                 m_newElements[x + 1][y + 1] = m_elements[x][y];
                                 continue;
                             }
@@ -477,7 +492,7 @@ public:
                             if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
                             {
                                 assert(m_newElements[x + 1][y] == 0);
-                                m_newExtra0[x+1][y] = m_extra0[x][y];
+                                m_newExtra0[x + 1][y] = m_extra0[x][y];
                                 m_newElements[x + 1][y] = m_elements[x][y];
                                 continue;
                             }
@@ -569,7 +584,7 @@ public:
                         {
                             assert(m_newElements[x - 1][y] == 0);
                             m_newElements[x - 1][y] = m_elements[x][y];
-                            m_newExtra0[x-1][y] = m_extra0[x][y];
+                            m_newExtra0[x - 1][y] = m_extra0[x][y];
                             continue;
                         }
                         assert(m_newElements[x][y] == 0);
