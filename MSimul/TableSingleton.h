@@ -20,8 +20,8 @@ private:
     sf::Color m_colors[256];
     float m_elapsed = 0;
 
-    unsigned char m_elements[m_size][m_size];
-    unsigned char m_newElements[m_size][m_size];
+    unsigned char m_elements[m_size][m_size], m_extra0[m_size][m_size];
+    unsigned char m_newElements[m_size][m_size], m_newExtra0[m_size][m_size];
 
     TableSingleton() : m_vertexArray(sf::Quads, 4 * m_size * m_size)
     {
@@ -30,11 +30,15 @@ private:
         m_colors[2] = sf::Color(100, 100, 100);
         m_colors[3] = sf::Color(243, 58, 106);
         m_colors[4] = sf::Color::Cyan;
-        m_colors[5] = sf::Color(0, 0, 100);
+        m_colors[5] = sf::Color(0, 0, 150);
+        m_colors[6] = sf::Color(150, 75, 0);
+        m_colors[7] = sf::Color(255, 121, 0);
         for (int i = 0; i < m_size; i++)
         {
             for (int j = 0; j < m_size; j++)
             {
+                m_elements[i][j] = 0;
+                m_extra0[i][j] = 0;
                 sf::Color color;
                 if ((i + j) % 2 == 0)
                 {
@@ -88,6 +92,18 @@ public:
                                 {
                                     m_elements[x][y] = 5;
                                 }
+                                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num6))
+                                {
+                                    m_elements[x][y] = 6;
+                                }
+                            }
+                            if (m_elements[x][y] == 0 || m_elements[x][y] == 7)
+                            {
+                                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num7))
+                                {
+                                    m_extra0[x][y] = 0;
+                                    m_elements[x][y] = 7;
+                                }
                             }
                         }
                     }
@@ -120,6 +136,7 @@ public:
                 for (int j = 0; j < m_size; j++)
                 {
                     m_newElements[i][j] = 0;
+                    m_newExtra0[i][j] = 0;
                 }
             }
             for (int y = 0; y < m_size; y++)
@@ -242,6 +259,16 @@ public:
                             m_newElements[x - 1][y - 1] = m_elements[x][y];
                             continue;
                         }
+                        if (x + 1 < m_size && m_elements[x + 1][y] == 1)
+                        {
+                            m_elements[x + 1][y] = 5;
+                            continue;
+                        }
+                        if (x - 1 >= 0 && m_newElements[x - 1][y] == 1)
+                        {
+                            m_elements[x - 1][y] = 5;
+                            continue;
+                        }
                         if (getRandom() & 1)
                         {
                             if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
@@ -341,6 +368,111 @@ public:
                         }
                         continue;
                     }
+                    if (m_elements[x][y] == 6)
+                    {
+                        assert(m_newElements[x][y] == 0);
+                        m_newElements[x][y] = m_elements[x][y];
+                        continue;
+                    }
+                    if (m_elements[x][y] == 7)
+                    {
+                        assert(m_newElements[x][y] == 0);
+                        if (getRandom() % 20 == 0)
+                        {
+                            if (m_extra0[x][y] + 1 <= 2)
+                            {
+                                m_extra0[x][y]++;
+                            }
+                        }
+                        if (y + 1 >= m_size)
+                        {
+                            continue;
+                        }
+                        if (getRandom() % 10 != 0)
+                        {
+                            m_newExtra0[x][y] = m_extra0[x][y];
+                            m_newElements[x][y] = m_elements[x][y];
+                            continue;
+                        }
+                        assert(y + 1 < m_size);
+                        if (m_elements[x][y + 1] == 0 && m_newElements[x][y + 1] == 0)
+                        {
+                            assert(m_newElements[x][y + 1] == 0);
+                            m_newExtra0[x][y + 1] = m_extra0[x][y];
+                            m_newElements[x][y + 1] = m_elements[x][y];
+                            continue;
+                        }
+                        if (m_elements[x][y + 1] == 6)
+                        {
+                            m_elements[x][y + 1] = 0;
+                            m_newElements[x][y + 1] = m_elements[x][y];
+                            m_newElements[x][y] = m_elements[x][y];
+                            continue;
+                        }
+                        if (x + 1 < m_size && m_elements[x + 1][y] == 6)
+                        {
+                            m_elements[x + 1][y] = 0;
+                            m_newElements[x + 1][y] = m_elements[x][y];
+                            m_newElements[x][y] = m_elements[x][y];
+                            continue;
+                        }
+                        if (x - 1 >= 0 && m_newElements[x - 1][y] == 6)
+                        {
+                            m_newElements[x - 1][y] = m_elements[x][y];
+                            m_newElements[x][y] = m_elements[x][y];
+                            continue;
+                        }
+                        if (getRandom() & 1)
+                        {
+                            if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                            {
+                                assert(m_newElements[x + 1][y + 1] == 0);
+                                m_newExtra0[x + 1][y + 1] = m_extra0[x][y];
+                                m_newElements[x + 1][y + 1] = m_elements[x][y];
+                                continue;
+                            }
+                            if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                            {
+                                assert(m_newElements[x - 1][y + 1] == 0);
+                                m_newExtra0[x-1][y+1] = m_extra0[x][y];
+                                m_newElements[x - 1][y + 1] = m_elements[x][y];
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                            {
+                                assert(m_newElements[x - 1][y + 1] == 0);
+                                m_newExtra0[x-1][y+1] = m_extra0[x][y];
+                                m_newElements[x - 1][y + 1] = m_elements[x][y];
+                                continue;
+                            }
+                            if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                            {
+                                assert(m_newElements[x + 1][y + 1] == 0);
+                                m_newExtra0[x+1][y+1] = m_extra0[x][y];
+                                m_newElements[x + 1][y + 1] = m_elements[x][y];
+                                continue;
+                            }
+                        }
+                        if (getRandom() & 1)
+                        {
+                            if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
+                            {
+                                assert(m_newElements[x + 1][y] == 0);
+                                m_newExtra0[x+1][y] = m_extra0[x][y];
+                                m_newElements[x + 1][y] = m_elements[x][y];
+                                continue;
+                            }
+                            cols.push_back(x);
+                        }
+                        else
+                        {
+                            cols.push_back(x);
+                        }
+                        continue;
+                    }
                 }
                 if (!cols.empty())
                 {
@@ -351,10 +483,12 @@ public:
                         {
                             assert(m_newElements[x - 1][y] == 0);
                             m_newElements[x - 1][y] = m_elements[x][y];
+                            m_newExtra0[x-1][y] = m_extra0[x][y];
                             continue;
                         }
                         assert(m_newElements[x][y] == 0);
                         m_newElements[x][y] = m_elements[x][y];
+                        m_newExtra0[x][y] = m_extra0[x][y];
                         continue;
                     }
                 }
@@ -365,6 +499,7 @@ public:
                 for (int j = 0; j < m_size; j++)
                 {
                     m_elements[i][j] = m_newElements[i][j];
+                    m_newExtra0[i][j] = m_extra0[i][j];
                 }
             }
         }
@@ -400,6 +535,19 @@ public:
                         color.r -= 50;
                         color.g += 50;
                         color.b -= 50;
+                    }
+                }
+                if (m_elements[i][j] == 7)
+                {
+                    int type = m_extra0[i][j];
+                    assert(0 <= type && type <= 2);
+                    if (type == 0)
+                    {
+                        color = sf::Color::White;
+                    }
+                    if (type == 2)
+                    {
+                        color = sf::Color::Red;
                     }
                 }
                 m_vertexArray[4 * (m_size * i + j)].color = color;
