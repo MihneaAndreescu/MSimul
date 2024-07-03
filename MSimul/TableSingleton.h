@@ -5,8 +5,8 @@
 #include <iostream>
 #include <cassert>
 #include <random>
-
-//std::mt19937 rng(228);
+#include <cstdio>
+#include <fstream>
 
 class TableSingleton : public sf::Drawable
 {
@@ -58,6 +58,72 @@ private:
     }
     std::vector<int> cols;
 public:
+
+    void saveToFile(std::string filename)
+    {
+        std::ofstream fileOut(filename);
+        if (!fileOut) 
+        {
+            std::cerr << "Failed to open file for writing.\n";
+            return;
+        }
+        for (int i = 0; i < m_size; i++) 
+        {
+            for (int j = 0; j < m_size; j++) 
+            {
+                fileOut << (char)m_elements[i][j];
+            }
+        }
+        for (int i = 0; i < m_size; i++) 
+        {
+            for (int j = 0; j < m_size; j++) 
+            {
+                fileOut << (char)m_extra0[i][j];
+            }
+        }
+        fileOut << '\n';
+        if (!fileOut.good()) 
+        {
+            std::cerr << "Error occurred while writing to file.\n";
+        }
+    }
+
+    void loadFromFile(std::string filename)
+    {
+        std::ifstream fileIn(filename);
+
+        if (!fileIn) 
+        {
+            std::cerr << "Failed to open file for reading.\n";
+            return;
+        }
+
+        std::string line;
+        std::getline(fileIn, line);
+        
+        if ((int)line.size() != 2 * m_size * m_size) 
+        {
+            std::cerr << "File content does not match expected size.\n";
+            return;
+        }
+
+        int y = 0;
+        for (int i = 0; i < m_size; i++) 
+        {
+            for (int j = 0; j < m_size; j++) 
+            {
+                m_elements[i][j] = line[y++];
+            }
+        }
+
+        for (int i = 0; i < m_size; i++) 
+        {
+            for (int j = 0; j < m_size; j++) 
+            {
+                m_extra0[i][j] = line[y++];
+            }
+        }
+    }
 
     void update(float dt, sf::Vector2f mousePosition, float radius)
     {

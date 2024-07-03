@@ -41,6 +41,20 @@ int main()
                     radius *= pow(1.1, event.mouseWheelScroll.delta);
                 }
             }
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::S)
+            {
+                std::cout << "enter filename to save: " << std::endl;
+                std::string filename;
+                std::cin >> filename;
+                tableSingletonInstance.saveToFile(filename);
+            }
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::L)
+            {
+                std::cout << "enter filename load from: " << std::endl;
+                std::string filename;
+                std::cin >> filename;
+                tableSingletonInstance.loadFromFile(filename);
+            }
         }
         float dt = frameClock.restart().asSeconds();
         tableSingletonInstance.update(dt, mousePosition, radius);
