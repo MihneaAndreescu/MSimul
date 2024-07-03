@@ -33,6 +33,7 @@ private:
         m_colors[5] = sf::Color(0, 0, 150);
         m_colors[6] = sf::Color(150, 75, 0);
         m_colors[7] = sf::Color(255, 121, 0);
+        m_colors[8] = sf::Color(200, 200, 200);
         for (int i = 0; i < m_size; i++)
         {
             for (int j = 0; j < m_size; j++)
@@ -95,6 +96,10 @@ public:
                                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num6))
                                 {
                                     m_elements[x][y] = 6;
+                                }
+                                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num8))
+                                {
+                                    m_elements[x][y] = 8;
                                 }
                             }
                             if (m_elements[x][y] == 0 || m_elements[x][y] == 7)
@@ -376,6 +381,11 @@ public:
                     }
                     if (m_elements[x][y] == 7)
                     {
+                        if (getRandom() % 400 == 0)
+                        {
+                            m_newElements[x][y] = 8;
+                            continue;
+                        }
                         assert(m_newElements[x][y] == 0);
                         if (getRandom() % 20 == 0)
                         {
@@ -402,6 +412,12 @@ public:
                             m_newElements[x][y + 1] = m_elements[x][y];
                             continue;
                         }
+                        if (y - 1 >= 0 && m_newElements[x][y - 1] == 6)
+                        {
+                            m_newElements[x][y - 1] = (m_elements[x][y]);
+                            m_newElements[x][y] = m_elements[x][y];
+                            continue;
+                        }
                         if (m_elements[x][y + 1] == 6)
                         {
                             m_elements[x][y + 1] = 0;
@@ -412,13 +428,13 @@ public:
                         if (x + 1 < m_size && m_elements[x + 1][y] == 6)
                         {
                             m_elements[x + 1][y] = 0;
-                            m_newElements[x + 1][y] = m_elements[x][y];
+                            m_newElements[x + 1][y] = (m_elements[x][y]);
                             m_newElements[x][y] = m_elements[x][y];
                             continue;
                         }
                         if (x - 1 >= 0 && m_newElements[x - 1][y] == 6)
                         {
-                            m_newElements[x - 1][y] = m_elements[x][y];
+                            m_newElements[x - 1][y] = (m_elements[x][y]);
                             m_newElements[x][y] = m_elements[x][y];
                             continue;
                         }
@@ -473,6 +489,76 @@ public:
                         }
                         continue;
                     }
+                    if (m_elements[x][y] == 8)
+                    {
+                        if (getRandom() % 400 == 0)
+                        {
+                            continue;
+                        }
+                        assert(m_newElements[x][y] == 0);
+                        if (y + 1 >= m_size)
+                        {
+                            continue;
+                        }
+                        if (getRandom() % 10 != 0)
+                        {
+                            m_newElements[x][y] = m_elements[x][y];
+                            continue;
+                        }
+                        assert(y + 1 < m_size);
+                        if (m_elements[x][y + 1] == 0 && m_newElements[x][y + 1] == 0)
+                        {
+                            assert(m_newElements[x][y + 1] == 0);
+                            m_newElements[x][y + 1] = m_elements[x][y];
+                            continue;
+                        }
+                        if (getRandom() & 1)
+                        {
+                            if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                            {
+                                assert(m_newElements[x + 1][y + 1] == 0);
+                                m_newElements[x + 1][y + 1] = m_elements[x][y];
+                                continue;
+                            }
+                            if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                            {
+                                assert(m_newElements[x - 1][y + 1] == 0);
+                                m_newElements[x - 1][y + 1] = m_elements[x][y];
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                            {
+                                assert(m_newElements[x - 1][y + 1] == 0);
+                                m_newElements[x - 1][y + 1] = m_elements[x][y];
+                                continue;
+                            }
+                            if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                            {
+                                assert(m_newElements[x + 1][y + 1] == 0);
+                                m_newElements[x + 1][y + 1] = m_elements[x][y];
+                                continue;
+                            }
+                        }
+                        if (getRandom() & 1)
+                        {
+                            if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
+                            {
+                                assert(m_newElements[x + 1][y] == 0);
+                                m_newElements[x + 1][y] = m_elements[x][y];
+                                continue;
+                            }
+                            cols.push_back(x);
+                        }
+                        else
+                        {
+                            cols.push_back(x);
+                        }
+                        continue;
+                    }
+
                 }
                 if (!cols.empty())
                 {
