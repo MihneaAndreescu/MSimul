@@ -1,6 +1,5 @@
 #pragma once
 #include <random>
-#include <chrono>
 
 class RngSingleton 
 {
@@ -10,11 +9,11 @@ private:
     RngSingleton();
 
 public:
+    // returns a random unsigned int 
+    unsigned int getRawRandom();
+
+    // for singleton structure:
     RngSingleton(const RngSingleton&) = delete;
-
     RngSingleton& operator = (const RngSingleton&) = delete;
-
     static RngSingleton& getInstance();
-
-    unsigned int getRandom();
 };

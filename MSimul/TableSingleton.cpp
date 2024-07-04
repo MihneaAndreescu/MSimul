@@ -1,12 +1,12 @@
 #include "TableSingleton.h"
 
-const float TableSingleton::FRAMERATE_RELEASE = 1.0f / 500.0f;
-const float TableSingleton::FRAMERATE_DEBUG = 1.0f / 300.0f;
-const float TableSingleton::FRAMERATE = TableSingleton::FRAMERATE_DEBUG;
+const float ParticlePhysicsTableSingleton::FRAMERATE_RELEASE = 1.0f / 500.0f;
+const float ParticlePhysicsTableSingleton::FRAMERATE_DEBUG = 1.0f / 300.0f;
+const float ParticlePhysicsTableSingleton::FRAMERATE = ParticlePhysicsTableSingleton::FRAMERATE_DEBUG;
 
-TableSingleton::TableSingleton() : 
+ParticlePhysicsTableSingleton::ParticlePhysicsTableSingleton() : 
     m_vertexArray(sf::Quads, 4 * m_size * m_size),
-    rngSingletonInstance(RngSingleton::getInstance())
+    m_rngSingletonInstance(RngSingleton::getInstance())
 {
     m_colors[0] = sf::Color::Black;
     m_colors[1] = sf::Color::Blue;
@@ -43,7 +43,7 @@ TableSingleton::TableSingleton() :
     }
 }
 
-void TableSingleton::saveToFile(std::string filename)
+void ParticlePhysicsTableSingleton::saveToFile(std::string filename)
 {
     std::ofstream fileOut(filename);
     if (!fileOut)
@@ -72,7 +72,7 @@ void TableSingleton::saveToFile(std::string filename)
     }
 }
 
-void TableSingleton::loadFromFile(std::string filename)
+void ParticlePhysicsTableSingleton::loadFromFile(std::string filename)
 {
     std::ifstream fileIn(filename);
 
@@ -109,7 +109,7 @@ void TableSingleton::loadFromFile(std::string filename)
     }
 }
 
-void TableSingleton::explodeBomb(int x, int y, int radius)
+void ParticlePhysicsTableSingleton::explodeBomb(int x, int y, int radius)
 {
     for (int i = x - radius; i <= x + radius; i++)
     {
@@ -129,7 +129,551 @@ void TableSingleton::explodeBomb(int x, int y, int radius)
     }
 }
 
-void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
+void ParticlePhysicsTableSingleton::updatePhysics()
+{
+    for (int i = 0; i < m_size; i++)
+    {
+        for (int j = 0; j < m_size; j++)
+        {
+            m_newElements[i][j] = 0;
+            m_newExtra0[i][j] = 0;
+        }
+    }
+    for (int y = 0; y < m_size; y++)
+    {
+        m_ysForReverse.clear();
+        for (int x = 0; x < m_size; x++)
+        {
+            if (m_elements[x][y] == 1)
+            {
+                if (y == 0)
+                {
+                    continue;
+                }
+                if (x == 0)
+                {
+                    continue;
+                }
+                if (x == m_size - 1)
+                {
+                    continue;
+                }
+                assert(y - 1 >= 0);
+                if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
+                {
+                    if (m_rngSingletonInstance.getRawRandom() % 5 != 0)
+                    {
+                        m_newElements[x][y] = m_elements[x][y];
+                        continue;
+                    }
+                    assert(m_newElements[x][y - 1] == 0);
+                    m_newElements[x][y - 1] = m_elements[x][y];
+                    continue;
+                }
+                if (m_elements[x][y - 1] == 3 && m_newElements[x][y - 1] == 3)
+                {
+                    m_newElements[x][y - 1] = 5;
+                    continue;
+                }
+                if (m_rngSingletonInstance.getRawRandom() & 1)
+                {
+                    if (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0)
+                    {
+                        assert(m_newElements[x + 1][y - 1] == 0);
+                        m_newElements[x + 1][y - 1] = m_elements[x][y];
+                        continue;
+                    }
+                    if (x - 1 >= 0 && m_newElements[x - 1][y - 1] == 0 && m_elements[x - 1][y - 1] == 0)
+                    {
+                        assert(m_newElements[x - 1][y - 1] == 0);
+                        m_newElements[x - 1][y - 1] = m_elements[x][y];
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (x - 1 >= 0 && m_newElements[x - 1][y - 1] == 0 && m_elements[x - 1][y - 1] == 0)
+                    {
+                        assert(m_newElements[x - 1][y - 1] == 0);
+                        m_newElements[x - 1][y - 1] = m_elements[x][y];
+                        continue;
+                    }
+                    if (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0)
+                    {
+                        assert(m_newElements[x + 1][y - 1] == 0);
+                        m_newElements[x + 1][y - 1] = m_elements[x][y];
+                        continue;
+                    }
+                }
+                if (m_rngSingletonInstance.getRawRandom() & 1)
+                {
+                    if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
+                    {
+                        assert(m_newElements[x + 1][y] == 0);
+                        m_newElements[x + 1][y] = m_elements[x][y];
+                        continue;
+                    }
+                    m_ysForReverse.push_back(x);
+                }
+                else
+                {
+                    m_ysForReverse.push_back(x);
+                }
+                continue;
+            }
+            if (m_elements[x][y] == 2)
+            {
+                assert(m_newElements[x][y] == 0);
+                m_newElements[x][y] = m_elements[x][y];
+                continue;
+            }
+            if (m_elements[x][y] == 3)
+            {
+                if (y == 0)
+                {
+                    continue;
+                }
+                if (x == 0)
+                {
+                    continue;
+                }
+                if (x == m_size - 1)
+                {
+                    continue;
+                }
+                assert(y - 1 >= 0);
+                if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
+                {
+                    if (m_rngSingletonInstance.getRawRandom() % 5 != 0)
+                    {
+                        m_newElements[x][y] = m_elements[x][y];
+                        continue;
+                    }
+                    assert(m_newElements[x][y - 1] == 0);
+                    m_newElements[x][y - 1] = m_elements[x][y];
+                    continue;
+                }
+                if (m_elements[x][y - 1] == 2 && m_newElements[x][y - 1] == 2)
+                {
+                    m_newElements[x][y - 1] = m_elements[x][y];
+                    continue;
+                }
+                if (m_elements[x][y - 1] == 1 && m_newElements[x][y - 1] == 1)
+                {
+                    m_newElements[x][y - 1] = 5;
+                    continue;
+                }
+                if (m_elements[x][y - 1] == 6 && m_newElements[x][y - 1] == 6)
+                {
+                    m_newElements[x][y - 1] = 5;
+                    continue;
+                }
+                if (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0)
+                {
+                    assert(m_newElements[x + 1][y - 1] == 0);
+                    m_newElements[x + 1][y - 1] = m_elements[x][y];
+                    continue;
+                }
+                if (x - 1 >= 0 && m_newElements[x - 1][y - 1] == 0 && m_elements[x - 1][y - 1] == 0)
+                {
+                    assert(m_newElements[x - 1][y - 1] == 0);
+                    m_newElements[x - 1][y - 1] = m_elements[x][y];
+                    continue;
+                }
+                if (x + 1 < m_size && m_elements[x + 1][y] == 1)
+                {
+                    m_elements[x + 1][y] = 5;
+                    continue;
+                }
+                if (x - 1 >= 0 && m_newElements[x - 1][y] == 1)
+                {
+                    m_elements[x - 1][y] = 5;
+                    continue;
+                }
+                if (x + 1 < m_size && m_elements[x + 1][y] == 6)
+                {
+                    m_elements[x + 1][y] = 5;
+                    continue;
+                }
+                if (x - 1 >= 0 && m_newElements[x - 1][y] == 6)
+                {
+                    m_elements[x - 1][y] = 5;
+                    continue;
+                }
+                if (m_rngSingletonInstance.getRawRandom() & 1)
+                {
+                    if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
+                    {
+                        assert(m_newElements[x + 1][y] == 0);
+                        m_newElements[x + 1][y] = m_elements[x][y];
+                        continue;
+                    }
+                    m_ysForReverse.push_back(x);
+                }
+                else
+                {
+                    m_ysForReverse.push_back(x);
+                }
+                continue;
+            }
+            if (m_elements[x][y] == 4)
+            {
+                assert(m_newElements[x][y] == 0);
+                m_newElements[x][y] = m_elements[x][y];
+                continue;
+            }
+            if (m_elements[x][y] == 5)
+            {
+                assert(m_newElements[x][y] == 0);
+                if (y + 1 >= m_size)
+                {
+                    continue;
+                }
+                if (m_elements[x][y + 1] == 1)
+                {
+                    m_elements[x][y + 1] = 0;
+                    m_newElements[x][y + 1] = 5;
+                    m_newElements[x][y] = 5;
+                    continue;
+                }
+                if (m_elements[x][y + 1] == 3)
+                {
+                    m_elements[x][y + 1] = 0;
+                    continue;
+                }
+                if (m_rngSingletonInstance.getRawRandom() % 10 != 0)
+                {
+                    m_newElements[x][y] = m_elements[x][y];
+                    continue;
+                }
+                assert(y + 1 < m_size);
+                if (m_elements[x][y + 1] == 0 && m_newElements[x][y + 1] == 0)
+                {
+                    assert(m_newElements[x][y + 1] == 0);
+                    m_newElements[x][y + 1] = m_elements[x][y];
+                    continue;
+                }
+                if (m_rngSingletonInstance.getRawRandom() & 1)
+                {
+                    if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x + 1][y + 1] == 0);
+                        m_newElements[x + 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                    if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x - 1][y + 1] == 0);
+                        m_newElements[x - 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x - 1][y + 1] == 0);
+                        m_newElements[x - 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                    if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x + 1][y + 1] == 0);
+                        m_newElements[x + 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                }
+                if (m_rngSingletonInstance.getRawRandom() & 1)
+                {
+                    if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
+                    {
+                        assert(m_newElements[x + 1][y] == 0);
+                        m_newElements[x + 1][y] = m_elements[x][y];
+                        continue;
+                    }
+                    m_ysForReverse.push_back(x);
+                }
+                else
+                {
+                    m_ysForReverse.push_back(x);
+                }
+                continue;
+            }
+            if (m_elements[x][y] == 6)
+            {
+                assert(m_newElements[x][y] == 0);
+                m_newElements[x][y] = m_elements[x][y];
+                continue;
+            }
+            if (m_elements[x][y] == 7)
+            {
+                if (m_rngSingletonInstance.getRawRandom() % 400 == 0)
+                {
+                    m_newElements[x][y] = 8;
+                    continue;
+                }
+                assert(m_newElements[x][y] == 0);
+                if (m_rngSingletonInstance.getRawRandom() % 20 == 0)
+                {
+                    if (m_extra0[x][y] + 1 <= 2)
+                    {
+                        m_extra0[x][y]++;
+                    }
+                }
+                if (y + 1 >= m_size)
+                {
+                    continue;
+                }
+                if (m_rngSingletonInstance.getRawRandom() % 2 == 0)
+                {
+                    if (y + 1 < m_size && (m_elements[x][y + 1] == 1 || m_elements[x][y + 1] == 5))
+                    {
+                        continue;
+                    }
+                    if (x + 1 < m_size && (m_elements[x + 1][y] == 1 || m_elements[x][y + 1] == 5))
+                    {
+                        continue;
+                    }
+                    if (x - 1 >= 0 && (m_elements[x - 1][y] == 1 || m_elements[x][y + 1] == 5))
+                    {
+                        continue;
+                    }
+                }
+                if (m_rngSingletonInstance.getRawRandom() % 10 != 0)
+                {
+                    m_newExtra0[x][y] = m_extra0[x][y];
+                    m_newElements[x][y] = m_elements[x][y];
+                    continue;
+                }
+                assert(y + 1 < m_size);
+                if (m_elements[x][y + 1] == 0 && m_newElements[x][y + 1] == 0)
+                {
+                    assert(m_newElements[x][y + 1] == 0);
+                    m_newExtra0[x][y + 1] = m_extra0[x][y];
+                    m_newElements[x][y + 1] = m_elements[x][y];
+                    continue;
+                }
+                if (y - 1 >= 0 && m_newElements[x][y - 1] == 6)
+                {
+                    m_newElements[x][y - 1] = (m_elements[x][y]);
+                    m_newElements[x][y] = m_elements[x][y];
+                    continue;
+                }
+                if (m_elements[x][y + 1] == 6)
+                {
+                    m_elements[x][y + 1] = 0;
+                    m_newElements[x][y + 1] = m_elements[x][y];
+                    m_newElements[x][y] = m_elements[x][y];
+                    continue;
+                }
+                if (x + 1 < m_size && m_elements[x + 1][y] == 6)
+                {
+                    m_elements[x + 1][y] = 0;
+                    m_newElements[x + 1][y] = (m_elements[x][y]);
+                    m_newElements[x][y] = m_elements[x][y];
+                    continue;
+                }
+                if (x - 1 >= 0 && m_newElements[x - 1][y] == 6)
+                {
+                    m_newElements[x - 1][y] = (m_elements[x][y]);
+                    m_newElements[x][y] = m_elements[x][y];
+                    continue;
+                }
+                if (m_rngSingletonInstance.getRawRandom() & 1)
+                {
+                    if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x + 1][y + 1] == 0);
+                        m_newExtra0[x + 1][y + 1] = m_extra0[x][y];
+                        m_newElements[x + 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                    if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x - 1][y + 1] == 0);
+                        m_newExtra0[x - 1][y + 1] = m_extra0[x][y];
+                        m_newElements[x - 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x - 1][y + 1] == 0);
+                        m_newExtra0[x - 1][y + 1] = m_extra0[x][y];
+                        m_newElements[x - 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                    if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x + 1][y + 1] == 0);
+                        m_newExtra0[x + 1][y + 1] = m_extra0[x][y];
+                        m_newElements[x + 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                }
+                if (m_rngSingletonInstance.getRawRandom() & 1)
+                {
+                    if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
+                    {
+                        assert(m_newElements[x + 1][y] == 0);
+                        m_newExtra0[x + 1][y] = m_extra0[x][y];
+                        m_newElements[x + 1][y] = m_elements[x][y];
+                        continue;
+                    }
+                    m_ysForReverse.push_back(x);
+                }
+                else
+                {
+                    m_ysForReverse.push_back(x);
+                }
+                continue;
+            }
+            if (m_elements[x][y] == 8)
+            {
+                if (m_rngSingletonInstance.getRawRandom() % 400 == 0)
+                {
+                    continue;
+                }
+                assert(m_newElements[x][y] == 0);
+                if (y + 1 >= m_size)
+                {
+                    continue;
+                }
+                if (m_rngSingletonInstance.getRawRandom() % 10 != 0)
+                {
+                    m_newElements[x][y] = m_elements[x][y];
+                    continue;
+                }
+                assert(y + 1 < m_size);
+                if (m_elements[x][y + 1] == 0 && m_newElements[x][y + 1] == 0)
+                {
+                    assert(m_newElements[x][y + 1] == 0);
+                    m_newElements[x][y + 1] = m_elements[x][y];
+                    continue;
+                }
+                if (m_rngSingletonInstance.getRawRandom() & 1)
+                {
+                    if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x + 1][y + 1] == 0);
+                        m_newElements[x + 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                    if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x - 1][y + 1] == 0);
+                        m_newElements[x - 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x - 1][y + 1] == 0);
+                        m_newElements[x - 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                    if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
+                    {
+                        assert(m_newElements[x + 1][y + 1] == 0);
+                        m_newElements[x + 1][y + 1] = m_elements[x][y];
+                        continue;
+                    }
+                }
+                if (m_rngSingletonInstance.getRawRandom() & 1)
+                {
+                    if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
+                    {
+                        assert(m_newElements[x + 1][y] == 0);
+                        m_newElements[x + 1][y] = m_elements[x][y];
+                        continue;
+                    }
+                    m_ysForReverse.push_back(x);
+                }
+                else
+                {
+                    m_ysForReverse.push_back(x);
+                }
+                continue;
+            }
+            if (m_elements[x][y] == 9 || m_elements[x][y] == 255)
+            {
+                int radius = 5;
+                if (x - 1 >= 0 && (m_elements[x - 1][y] == 7 || m_elements[x - 1][y] == 3))
+                {
+                    if (m_elements[x][y] == 9)
+                    {
+                        explodeBomb(x, y, radius);
+                    }
+                    m_newElements[x][y] = 7;
+                    continue;
+                }
+                if (x + 1 < m_size && (m_elements[x + 1][y] == 7 || m_elements[x + 1][y] == 3))
+                {
+                    if (m_elements[x][y] == 9)
+                    {
+                        explodeBomb(x, y, radius);
+                    }
+                    m_newElements[x][y] = 7;
+                    continue;
+                }
+                if (y - 1 >= 0 && (m_elements[x][y - 1] == 7 || m_elements[x][y - 1] == 3))
+                {
+                    if (m_elements[x][y] == 9)
+                    {
+                        explodeBomb(x, y, radius);
+                    }
+                    m_newElements[x][y] = 7;
+                    continue;
+                }
+                if (y + 1 < m_size && (m_elements[x][y + 1] == 7 || m_elements[x][y + 1] == 3))
+                {
+                    if (m_elements[x][y] == 9)
+                    {
+                        explodeBomb(x, y, radius);
+                    }
+                    m_newElements[x][y] = 7;
+                    continue;
+                }
+                assert(m_newElements[x][y] == 0);
+                m_newElements[x][y] = m_elements[x][y];
+                continue;
+            }
+        }
+        if (!m_ysForReverse.empty())
+        {
+            reverse(m_ysForReverse.begin(), m_ysForReverse.end());
+            for (auto& x : m_ysForReverse)
+            {
+                if (x - 1 >= 0 && m_newElements[x - 1][y] == 0 && m_elements[x - 1][y] == 0)
+                {
+                    assert(m_newElements[x - 1][y] == 0);
+                    m_newElements[x - 1][y] = m_elements[x][y];
+                    m_newExtra0[x - 1][y] = m_extra0[x][y];
+                    continue;
+                }
+                assert(m_newElements[x][y] == 0);
+                m_newElements[x][y] = m_elements[x][y];
+                m_newExtra0[x][y] = m_extra0[x][y];
+                continue;
+            }
+        }
+    }
+
+    for (int i = 0; i < m_size; i++)
+    {
+        for (int j = 0; j < m_size; j++)
+        {
+            m_elements[i][j] = m_newElements[i][j];
+            m_newExtra0[i][j] = m_extra0[i][j];
+        }
+    }
+}
+
+void ParticlePhysicsTableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
 {
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
     {
@@ -210,561 +754,22 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
     while (m_elapsed >= FRAMERATE)
     {
         m_elapsed -= FRAMERATE;
-        for (int i = 0; i < m_size; i++)
-        {
-            for (int j = 0; j < m_size; j++)
-            {
-                m_newElements[i][j] = 0;
-                m_newExtra0[i][j] = 0;
-            }
-        }
-        for (int y = 0; y < m_size; y++)
-        {
-            cols.clear();
-            for (int x = 0; x < m_size; x++)
-            {
-                if (m_elements[x][y] == 1)
-                {
-                    if (y == 0)
-                    {
-                        continue;
-                    }
-                    if (x == 0)
-                    {
-                        continue;
-                    }
-                    if (x == m_size - 1)
-                    {
-                        continue;
-                    }
-                    assert(y - 1 >= 0);
-                    if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
-                    {
-                        if (rngSingletonInstance.getRandom() % 5 != 0)
-                        {
-                            m_newElements[x][y] = m_elements[x][y];
-                            continue;
-                        }
-                        assert(m_newElements[x][y - 1] == 0);
-                        m_newElements[x][y - 1] = m_elements[x][y];
-                        continue;
-                    }
-                    if (m_elements[x][y - 1] == 3 && m_newElements[x][y - 1] == 3)
-                    {
-                        m_newElements[x][y - 1] = 5;
-                        continue;
-                    }
-                    if (rngSingletonInstance.getRandom() & 1)
-                    {
-                        if (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0)
-                        {
-                            assert(m_newElements[x + 1][y - 1] == 0);
-                            m_newElements[x + 1][y - 1] = m_elements[x][y];
-                            continue;
-                        }
-                        if (x - 1 >= 0 && m_newElements[x - 1][y - 1] == 0 && m_elements[x - 1][y - 1] == 0)
-                        {
-                            assert(m_newElements[x - 1][y - 1] == 0);
-                            m_newElements[x - 1][y - 1] = m_elements[x][y];
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        if (x - 1 >= 0 && m_newElements[x - 1][y - 1] == 0 && m_elements[x - 1][y - 1] == 0)
-                        {
-                            assert(m_newElements[x - 1][y - 1] == 0);
-                            m_newElements[x - 1][y - 1] = m_elements[x][y];
-                            continue;
-                        }
-                        if (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0)
-                        {
-                            assert(m_newElements[x + 1][y - 1] == 0);
-                            m_newElements[x + 1][y - 1] = m_elements[x][y];
-                            continue;
-                        }
-                    }
-                    if (rngSingletonInstance.getRandom() & 1)
-                    {
-                        if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
-                        {
-                            assert(m_newElements[x + 1][y] == 0);
-                            m_newElements[x + 1][y] = m_elements[x][y];
-                            continue;
-                        }
-                        cols.push_back(x);
-                    }
-                    else
-                    {
-                        cols.push_back(x);
-                    }
-                    continue;
-                }
-                if (m_elements[x][y] == 2)
-                {
-                    assert(m_newElements[x][y] == 0);
-                    m_newElements[x][y] = m_elements[x][y];
-                    continue;
-                }
-                if (m_elements[x][y] == 3)
-                {
-                    if (y == 0)
-                    {
-                        continue;
-                    }
-                    if (x == 0)
-                    {
-                        continue;
-                    }
-                    if (x == m_size - 1)
-                    {
-                        continue;
-                    }
-                    assert(y - 1 >= 0);
-                    if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
-                    {
-                        if (rngSingletonInstance.getRandom() % 5 != 0)
-                        {
-                            m_newElements[x][y] = m_elements[x][y];
-                            continue;
-                        }
-                        assert(m_newElements[x][y - 1] == 0);
-                        m_newElements[x][y - 1] = m_elements[x][y];
-                        continue;
-                    }
-                    if (m_elements[x][y - 1] == 2 && m_newElements[x][y - 1] == 2)
-                    {
-                        m_newElements[x][y - 1] = m_elements[x][y];
-                        continue;
-                    }
-                    if (m_elements[x][y - 1] == 1 && m_newElements[x][y - 1] == 1)
-                    {
-                        m_newElements[x][y - 1] = 5;
-                        continue;
-                    }
-                    if (m_elements[x][y - 1] == 6 && m_newElements[x][y - 1] == 6)
-                    {
-                        m_newElements[x][y - 1] = 5;
-                        continue;
-                    }
-                    if (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0)
-                    {
-                        assert(m_newElements[x + 1][y - 1] == 0);
-                        m_newElements[x + 1][y - 1] = m_elements[x][y];
-                        continue;
-                    }
-                    if (x - 1 >= 0 && m_newElements[x - 1][y - 1] == 0 && m_elements[x - 1][y - 1] == 0)
-                    {
-                        assert(m_newElements[x - 1][y - 1] == 0);
-                        m_newElements[x - 1][y - 1] = m_elements[x][y];
-                        continue;
-                    }
-                    if (x + 1 < m_size && m_elements[x + 1][y] == 1)
-                    {
-                        m_elements[x + 1][y] = 5;
-                        continue;
-                    }
-                    if (x - 1 >= 0 && m_newElements[x - 1][y] == 1)
-                    {
-                        m_elements[x - 1][y] = 5;
-                        continue;
-                    }
-                    if (x + 1 < m_size && m_elements[x + 1][y] == 6)
-                    {
-                        m_elements[x + 1][y] = 5;
-                        continue;
-                    }
-                    if (x - 1 >= 0 && m_newElements[x - 1][y] == 6)
-                    {
-                        m_elements[x - 1][y] = 5;
-                        continue;
-                    }
-                    if (rngSingletonInstance.getRandom() & 1)
-                    {
-                        if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
-                        {
-                            assert(m_newElements[x + 1][y] == 0);
-                            m_newElements[x + 1][y] = m_elements[x][y];
-                            continue;
-                        }
-                        cols.push_back(x);
-                    }
-                    else
-                    {
-                        cols.push_back(x);
-                    }
-                    continue;
-                }
-                if (m_elements[x][y] == 4)
-                {
-                    assert(m_newElements[x][y] == 0);
-                    m_newElements[x][y] = m_elements[x][y];
-                    continue;
-                }
-                if (m_elements[x][y] == 5)
-                {
-                    assert(m_newElements[x][y] == 0);
-                    if (y + 1 >= m_size)
-                    {
-                        continue;
-                    }
-                    if (m_elements[x][y + 1] == 1)
-                    {
-                        m_elements[x][y + 1] = 0;
-                        m_newElements[x][y + 1] = 5;
-                        m_newElements[x][y] = 5;
-                        continue;
-                    }
-                    if (m_elements[x][y + 1] == 3)
-                    {
-                        m_elements[x][y + 1] = 0;
-                        continue;
-                    }
-                    if (rngSingletonInstance.getRandom() % 10 != 0)
-                    {
-                        m_newElements[x][y] = m_elements[x][y];
-                        continue;
-                    }
-                    assert(y + 1 < m_size);
-                    if (m_elements[x][y + 1] == 0 && m_newElements[x][y + 1] == 0)
-                    {
-                        assert(m_newElements[x][y + 1] == 0);
-                        m_newElements[x][y + 1] = m_elements[x][y];
-                        continue;
-                    }
-                    if (rngSingletonInstance.getRandom() & 1)
-                    {
-                        if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x + 1][y + 1] == 0);
-                            m_newElements[x + 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                        if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x - 1][y + 1] == 0);
-                            m_newElements[x - 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x - 1][y + 1] == 0);
-                            m_newElements[x - 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                        if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x + 1][y + 1] == 0);
-                            m_newElements[x + 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                    }
-                    if (rngSingletonInstance.getRandom() & 1)
-                    {
-                        if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
-                        {
-                            assert(m_newElements[x + 1][y] == 0);
-                            m_newElements[x + 1][y] = m_elements[x][y];
-                            continue;
-                        }
-                        cols.push_back(x);
-                    }
-                    else
-                    {
-                        cols.push_back(x);
-                    }
-                    continue;
-                }
-                if (m_elements[x][y] == 6)
-                {
-                    assert(m_newElements[x][y] == 0);
-                    m_newElements[x][y] = m_elements[x][y];
-                    continue;
-                }
-                if (m_elements[x][y] == 7)
-                {
-                    if (rngSingletonInstance.getRandom() % 400 == 0)
-                    {
-                        m_newElements[x][y] = 8;
-                        continue;
-                    }
-                    assert(m_newElements[x][y] == 0);
-                    if (rngSingletonInstance.getRandom() % 20 == 0)
-                    {
-                        if (m_extra0[x][y] + 1 <= 2)
-                        {
-                            m_extra0[x][y]++;
-                        }
-                    }
-                    if (y + 1 >= m_size)
-                    {
-                        continue;
-                    }
-                    if (rngSingletonInstance.getRandom() % 2 == 0)
-                    {
-                        if (y + 1 < m_size && (m_elements[x][y + 1] == 1 || m_elements[x][y + 1] == 5))
-                        {
-                            continue;
-                        }
-                        if (x + 1 < m_size && (m_elements[x + 1][y] == 1 || m_elements[x][y + 1] == 5))
-                        {
-                            continue;
-                        }
-                        if (x - 1 >= 0 && (m_elements[x - 1][y] == 1 || m_elements[x][y + 1] == 5))
-                        {
-                            continue;
-                        }
-                    }
-                    if (rngSingletonInstance.getRandom() % 10 != 0)
-                    {
-                        m_newExtra0[x][y] = m_extra0[x][y];
-                        m_newElements[x][y] = m_elements[x][y];
-                        continue;
-                    }
-                    assert(y + 1 < m_size);
-                    if (m_elements[x][y + 1] == 0 && m_newElements[x][y + 1] == 0)
-                    {
-                        assert(m_newElements[x][y + 1] == 0);
-                        m_newExtra0[x][y + 1] = m_extra0[x][y];
-                        m_newElements[x][y + 1] = m_elements[x][y];
-                        continue;
-                    }
-                    if (y - 1 >= 0 && m_newElements[x][y - 1] == 6)
-                    {
-                        m_newElements[x][y - 1] = (m_elements[x][y]);
-                        m_newElements[x][y] = m_elements[x][y];
-                        continue;
-                    }
-                    if (m_elements[x][y + 1] == 6)
-                    {
-                        m_elements[x][y + 1] = 0;
-                        m_newElements[x][y + 1] = m_elements[x][y];
-                        m_newElements[x][y] = m_elements[x][y];
-                        continue;
-                    }
-                    if (x + 1 < m_size && m_elements[x + 1][y] == 6)
-                    {
-                        m_elements[x + 1][y] = 0;
-                        m_newElements[x + 1][y] = (m_elements[x][y]);
-                        m_newElements[x][y] = m_elements[x][y];
-                        continue;
-                    }
-                    if (x - 1 >= 0 && m_newElements[x - 1][y] == 6)
-                    {
-                        m_newElements[x - 1][y] = (m_elements[x][y]);
-                        m_newElements[x][y] = m_elements[x][y];
-                        continue;
-                    }
-                    if (rngSingletonInstance.getRandom() & 1)
-                    {
-                        if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x + 1][y + 1] == 0);
-                            m_newExtra0[x + 1][y + 1] = m_extra0[x][y];
-                            m_newElements[x + 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                        if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x - 1][y + 1] == 0);
-                            m_newExtra0[x - 1][y + 1] = m_extra0[x][y];
-                            m_newElements[x - 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x - 1][y + 1] == 0);
-                            m_newExtra0[x - 1][y + 1] = m_extra0[x][y];
-                            m_newElements[x - 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                        if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x + 1][y + 1] == 0);
-                            m_newExtra0[x + 1][y + 1] = m_extra0[x][y];
-                            m_newElements[x + 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                    }
-                    if (rngSingletonInstance.getRandom() & 1)
-                    {
-                        if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
-                        {
-                            assert(m_newElements[x + 1][y] == 0);
-                            m_newExtra0[x + 1][y] = m_extra0[x][y];
-                            m_newElements[x + 1][y] = m_elements[x][y];
-                            continue;
-                        }
-                        cols.push_back(x);
-                    }
-                    else
-                    {
-                        cols.push_back(x);
-                    }
-                    continue;
-                }
-                if (m_elements[x][y] == 8)
-                {
-                    if (rngSingletonInstance.getRandom() % 400 == 0)
-                    {
-                        continue;
-                    }
-                    assert(m_newElements[x][y] == 0);
-                    if (y + 1 >= m_size)
-                    {
-                        continue;
-                    }
-                    if (rngSingletonInstance.getRandom() % 10 != 0)
-                    {
-                        m_newElements[x][y] = m_elements[x][y];
-                        continue;
-                    }
-                    assert(y + 1 < m_size);
-                    if (m_elements[x][y + 1] == 0 && m_newElements[x][y + 1] == 0)
-                    {
-                        assert(m_newElements[x][y + 1] == 0);
-                        m_newElements[x][y + 1] = m_elements[x][y];
-                        continue;
-                    }
-                    if (rngSingletonInstance.getRandom() & 1)
-                    {
-                        if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x + 1][y + 1] == 0);
-                            m_newElements[x + 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                        if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x - 1][y + 1] == 0);
-                            m_newElements[x - 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        if (x - 1 >= 0 && m_newElements[x - 1][y + 1] == 0 && m_elements[x - 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x - 1][y + 1] == 0);
-                            m_newElements[x - 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                        if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
-                        {
-                            assert(m_newElements[x + 1][y + 1] == 0);
-                            m_newElements[x + 1][y + 1] = m_elements[x][y];
-                            continue;
-                        }
-                    }
-                    if (rngSingletonInstance.getRandom() & 1)
-                    {
-                        if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
-                        {
-                            assert(m_newElements[x + 1][y] == 0);
-                            m_newElements[x + 1][y] = m_elements[x][y];
-                            continue;
-                        }
-                        cols.push_back(x);
-                    }
-                    else
-                    {
-                        cols.push_back(x);
-                    }
-                    continue;
-                }
-                if (m_elements[x][y] == 9 || m_elements[x][y] == 255)
-                {
-                    int radius = 5;
-                    if (x - 1 >= 0 && (m_elements[x - 1][y] == 7 || m_elements[x - 1][y] == 3))
-                    {
-                        if (m_elements[x][y] == 9)
-                        {
-                            explodeBomb(x, y, radius);
-                        }
-                        m_newElements[x][y] = 7;
-                        continue;
-                    }
-                    if (x + 1 < m_size && (m_elements[x + 1][y] == 7 || m_elements[x + 1][y] == 3))
-                    {
-                        if (m_elements[x][y] == 9)
-                        {
-                            explodeBomb(x, y, radius);
-                        }
-                        m_newElements[x][y] = 7;
-                        continue;
-                    }
-                    if (y - 1 >= 0 && (m_elements[x][y - 1] == 7 || m_elements[x][y - 1] == 3))
-                    {
-                        if (m_elements[x][y] == 9)
-                        {
-                            explodeBomb(x, y, radius);
-                        }
-                        m_newElements[x][y] = 7;
-                        continue;
-                    }
-                    if (y + 1 < m_size && (m_elements[x][y + 1] == 7 || m_elements[x][y + 1] == 3))
-                    {
-                        if (m_elements[x][y] == 9)
-                        {
-                            explodeBomb(x, y, radius);
-                        }
-                        m_newElements[x][y] = 7;
-                        continue;
-                    }
-                    assert(m_newElements[x][y] == 0);
-                    m_newElements[x][y] = m_elements[x][y];
-                    continue;
-                }
-            }
-            if (!cols.empty())
-            {
-                reverse(cols.begin(), cols.end());
-                for (auto& x : cols)
-                {
-                    if (x - 1 >= 0 && m_newElements[x - 1][y] == 0 && m_elements[x - 1][y] == 0)
-                    {
-                        assert(m_newElements[x - 1][y] == 0);
-                        m_newElements[x - 1][y] = m_elements[x][y];
-                        m_newExtra0[x - 1][y] = m_extra0[x][y];
-                        continue;
-                    }
-                    assert(m_newElements[x][y] == 0);
-                    m_newElements[x][y] = m_elements[x][y];
-                    m_newExtra0[x][y] = m_extra0[x][y];
-                    continue;
-                }
-            }
-        }
-
-        for (int i = 0; i < m_size; i++)
-        {
-            for (int j = 0; j < m_size; j++)
-            {
-                m_elements[i][j] = m_newElements[i][j];
-                m_newExtra0[i][j] = m_extra0[i][j];
-            }
-        }
+        updatePhysics();
     }
 }
 
-int TableSingleton::getSize()
+int ParticlePhysicsTableSingleton::getSize()
 {
     return m_size;
 }
 
-TableSingleton& TableSingleton::getInstance()
+ParticlePhysicsTableSingleton& ParticlePhysicsTableSingleton::getInstance()
 {
-    static TableSingleton instance;
+    static ParticlePhysicsTableSingleton instance;
     return instance;
 }
 
-void TableSingleton::prepDraw()
+void ParticlePhysicsTableSingleton::prepDraw()
 {
     for (int i = 0; i < m_size; i++)
     {
@@ -773,7 +778,7 @@ void TableSingleton::prepDraw()
             sf::Color color = m_colors[m_elements[i][j]];
             if (m_elements[i][j] == 3)
             {
-                int ran = rngSingletonInstance.getRandom() % 2;
+                int ran = m_rngSingletonInstance.getRawRandom() % 2;
                 if (ran == 0)
                 {
                     color.r -= 50;
@@ -802,7 +807,7 @@ void TableSingleton::prepDraw()
     }
 }
 
-void TableSingleton::draw(sf::RenderTarget& renderTarget, sf::RenderStates renderStates) const
+void ParticlePhysicsTableSingleton::draw(sf::RenderTarget& renderTarget, sf::RenderStates renderStates) const
 {
     renderTarget.draw(m_vertexArray, renderStates);
 }

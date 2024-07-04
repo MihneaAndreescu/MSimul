@@ -7,7 +7,7 @@
 
 int main()
 {
-    TableSingleton& tableSingletonInstance = TableSingleton::getInstance();
+    ParticlePhysicsTableSingleton& tableSingletonInstance = ParticlePhysicsTableSingleton::getInstance();
 
     sf::RenderWindow window(sf::VideoMode(900, 900), "MSimul");
     sf::View view;

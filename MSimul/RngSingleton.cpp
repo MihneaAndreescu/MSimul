@@ -1,4 +1,5 @@
 #include "RngSingleton.h"
+#include <chrono>
 
 RngSingleton::RngSingleton() :
     m_rng(std::chrono::high_resolution_clock::now().time_since_epoch().count())
@@ -12,7 +13,7 @@ RngSingleton& RngSingleton::getInstance()
     return instance;
 }
 
-unsigned int RngSingleton::getRandom()
+unsigned int RngSingleton::getRawRandom()
 {
     return m_rng();
 }

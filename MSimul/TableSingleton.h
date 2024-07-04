@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <fstream>
 
-class TableSingleton : public sf::Drawable
+class ParticlePhysicsTableSingleton : public sf::Drawable
 {
 private:
     static const float FRAMERATE_RELEASE;
@@ -20,34 +20,36 @@ private:
     sf::Color m_colors[256];
     float m_elapsed = 0;
 
-    unsigned char m_elements[m_size][m_size], m_extra0[m_size][m_size];
-    unsigned char m_newElements[m_size][m_size], m_newExtra0[m_size][m_size];
+    unsigned char m_elements[m_size][m_size];
+    unsigned char m_extra0[m_size][m_size];
 
-    RngSingleton& rngSingletonInstance;
+    unsigned char m_newElements[m_size][m_size];
+    unsigned char m_newExtra0[m_size][m_size];
 
-    TableSingleton();
+    RngSingleton& m_rngSingletonInstance;
 
-    std::vector<int> cols;
+    ParticlePhysicsTableSingleton();
 
-public:
-
-    void saveToFile(std::string filename);
-
-    void loadFromFile(std::string filename);
+    std::vector<int> m_ysForReverse;
 
     void explodeBomb(int x, int y, int radius);
+public:
 
+    // for saving / loading progress
+    void saveToFile(std::string filename);
+    void loadFromFile(std::string filename);
+
+    void updatePhysics();
     void update(float dt, sf::Vector2f mousePosition, float radius);
 
     int getSize();
 
-    TableSingleton(const TableSingleton&) = delete;
-
-    TableSingleton& operator = (const TableSingleton&) = delete;
-
-    static TableSingleton& getInstance();
-
+    // for drawing:
     void prepDraw();
-
     virtual void draw(sf::RenderTarget& renderTarget, sf::RenderStates renderStates) const;
+
+    // for singleton structure:
+    ParticlePhysicsTableSingleton(const ParticlePhysicsTableSingleton&) = delete;
+    ParticlePhysicsTableSingleton& operator = (const ParticlePhysicsTableSingleton&) = delete;
+    static ParticlePhysicsTableSingleton& getInstance();
 };
