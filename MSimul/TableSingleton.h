@@ -248,6 +248,14 @@ public:
                         {
                             continue;
                         }
+                        if (x == 0)
+                        {
+                            continue;
+                        }
+                        if (x == m_size - 1)
+                        {
+                            continue;
+                        }
                         assert(y - 1 >= 0);
                         if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
                         {
@@ -320,6 +328,14 @@ public:
                     if (m_elements[x][y] == 3)
                     {
                         if (y == 0)
+                        {
+                            continue;
+                        }
+                        if (x == 0)
+                        {
+                            continue;
+                        }
+                        if (x == m_size - 1)
                         {
                             continue;
                         }
@@ -684,7 +700,7 @@ public:
                     if (m_elements[x][y] == 9 || m_elements[x][y] == 255)
                     {
                         int radius = 5;
-                        if (x - 1 >= 0 && m_elements[x - 1][y] == 7)
+                        if (x - 1 >= 0 && (m_elements[x - 1][y] == 7 || m_elements[x - 1][y] == 3))
                         {
                             if (m_elements[x][y] == 9)
                             {
@@ -693,7 +709,7 @@ public:
                             m_newElements[x][y] = 7;
                             continue;
                         }
-                        if (x + 1 < m_size && m_elements[x + 1][y] == 7)
+                        if (x + 1 < m_size && (m_elements[x + 1][y] == 7 || m_elements[x + 1][y] == 3))
                         {
                             if (m_elements[x][y] == 9)
                             {
@@ -702,7 +718,7 @@ public:
                             m_newElements[x][y] = 7;
                             continue;
                         }
-                        if (y - 1 >= 0 && m_elements[x][y - 1] == 7)
+                        if (y - 1 >= 0 && (m_elements[x][y-1] == 7 || m_elements[x][y-1] == 3))
                         {
                             if (m_elements[x][y] == 9)
                             {
@@ -711,7 +727,7 @@ public:
                             m_newElements[x][y] = 7;
                             continue;
                         }            
-                        if (y + 1 < m_size && m_elements[x][y + 1] == 7)
+                        if (y + 1 < m_size && (m_elements[x][y+1] == 7 || m_elements[x][y+1] == 3))
                         {
                             if (m_elements[x][y] == 9)
                             {
