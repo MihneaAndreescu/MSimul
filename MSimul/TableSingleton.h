@@ -34,6 +34,8 @@ private:
         m_colors[6] = sf::Color(150, 75, 0);
         m_colors[7] = sf::Color(255, 121, 0);
         m_colors[8] = sf::Color(200, 200, 200);
+        m_colors[9] = sf::Color::Red;
+        m_colors[255] = sf::Color::Red;
         for (int i = 0; i < m_size; i++)
         {
             for (int j = 0; j < m_size; j++)
@@ -125,6 +127,26 @@ public:
         }
     }
 
+    void bomb(int x, int y, int radius)
+    {
+        for (int i = x - radius; i <= x + radius; i++)
+        {
+            for (int j = y - radius; j <= y + radius; j++)
+            {
+                if (0 <= i && i < m_size && 0 <= j && j < m_size)
+                {
+                    if ((i - x) * (i - x) + (j - y) * (j - y) <= radius * radius)
+                    {
+                        if (m_elements[i][j] == 0)
+                        {
+                            m_newElements[i][j] = 255;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     void update(float dt, sf::Vector2f mousePosition, float radius)
     {
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
@@ -166,6 +188,10 @@ public:
                                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num8))
                                 {
                                     m_elements[x][y] = 8;
+                                }
+                                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num9))
+                                {
+                                    m_elements[x][y] = 9;
                                 }
                             }
                             if (m_elements[x][y] == 0 || m_elements[x][y] == 7)
@@ -654,7 +680,49 @@ public:
                         }
                         continue;
                     }
-
+                    if (m_elements[x][y] == 9 || m_elements[x][y] == 255)
+                    {
+                        int radius = 5;
+                        if (x - 1 >= 0 && m_elements[x - 1][y] == 7)
+                        {
+                            if (m_elements[x][y] == 9)
+                            {
+                                bomb(x, y, radius);
+                            }
+                            m_newElements[x][y] = 7;
+                            continue;
+                        }
+                        if (x + 1 < m_size && m_elements[x + 1][y] == 7)
+                        {
+                            if (m_elements[x][y] == 9)
+                            {
+                                bomb(x, y, radius);
+                            }
+                            m_newElements[x][y] = 7;
+                            continue;
+                        }
+                        if (y - 1 >= 0 && m_elements[x][y - 1] == 7)
+                        {
+                            if (m_elements[x][y] == 9)
+                            {
+                                bomb(x, y, radius);
+                            }
+                            m_newElements[x][y] = 7;
+                            continue;
+                        }            
+                        if (y + 1 < m_size && m_elements[x][y + 1] == 7)
+                        {
+                            if (m_elements[x][y] == 9)
+                            {
+                                bomb(x, y, radius);
+                            }
+                            m_newElements[x][y] = 7;
+                            continue;
+                        }
+                        assert(m_newElements[x][y] == 0);
+                        m_newElements[x][y] = m_elements[x][y];
+                        continue;
+                    }
                 }
                 if (!cols.empty())
                 {

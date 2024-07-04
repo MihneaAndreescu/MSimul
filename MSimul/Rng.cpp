@@ -5,5 +5,10 @@ std::mt19937 rng(228);
 
 int getRandom()
 {
-	return rng();
+	int x = rng();
+	if (x < 0)
+	{
+		x *= -1;
+	}
+	return x;
 }
