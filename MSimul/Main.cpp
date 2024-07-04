@@ -13,6 +13,10 @@ int main()
     sf::View view;
     view.setSize(sf::Vector2f(tableSingletonInstance.getSize(), -tableSingletonInstance.getSize()));
     view.setCenter(sf::Vector2f(tableSingletonInstance.getSize(), tableSingletonInstance.getSize()) * 0.5f);
+    
+    view.setSize(sf::Vector2f(1, -1));
+    view.setCenter(sf::Vector2f(0.5, 0.5));
+
     window.setView(view);
 
     sf::Clock fpsClock;
@@ -26,7 +30,8 @@ int main()
         sf::Clock glock;
         sf::Event event;
 
-        sf::Vector2f mousePosition = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getView());
+        sf::Vector2f mousePositionOrig = window.mapPixelToCoords(sf::Mouse::getPosition(window), window.getView());
+        sf::Vector2f mousePosition = mousePositionOrig * (float)tableSingletonInstance.getSize();
 
         while (window.pollEvent(event))
         {
@@ -70,11 +75,11 @@ int main()
             fps = 0;
         }
         sf::CircleShape shape;
-        shape.setRadius(radius);
-        shape.setOrigin(sf::Vector2f(1, 1) * radius);
-        shape.setPosition(mousePosition);
+        shape.setRadius(radius / (float)tableSingletonInstance.getSize());
+        shape.setOrigin(sf::Vector2f(1, 1) * shape.getRadius());
+        shape.setPosition(mousePositionOrig);
         shape.setFillColor(sf::Color::Transparent);
-        shape.setOutlineThickness(0.1);
+        shape.setOutlineThickness(0.001);
         shape.setOutlineColor(sf::Color::White);
         window.draw(shape);
         window.display();

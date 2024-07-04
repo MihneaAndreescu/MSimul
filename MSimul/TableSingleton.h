@@ -36,6 +36,7 @@ private:
         m_colors[8] = sf::Color(200, 200, 200);
         m_colors[9] = sf::Color::Red;
         m_colors[255] = sf::Color::Red;
+        float inv_size = 1.0f / (float)m_size;
         for (int i = 0; i < m_size; i++)
         {
             for (int j = 0; j < m_size; j++)
@@ -51,10 +52,10 @@ private:
                 {
                     color = sf::Color::Blue;
                 }
-                m_vertexArray[4 * (m_size * i + j)] = sf::Vertex(sf::Vector2f(i, j), color);
-                m_vertexArray[4 * (m_size * i + j) + 1] = sf::Vertex(sf::Vector2f(i, j + 1), color);
-                m_vertexArray[4 * (m_size * i + j) + 2] = sf::Vertex(sf::Vector2f(i + 1, j + 1), color);
-                m_vertexArray[4 * (m_size * i + j) + 3] = sf::Vertex(sf::Vector2f(i + 1, j), color);
+                m_vertexArray[4 * (m_size * i + j)] = sf::Vertex(sf::Vector2f(i, j)*inv_size, color);
+                m_vertexArray[4 * (m_size * i + j) + 1] = sf::Vertex(sf::Vector2f(i, j + 1)*inv_size, color);
+                m_vertexArray[4 * (m_size * i + j) + 2] = sf::Vertex(sf::Vector2f(i + 1, j + 1)*inv_size, color);
+                m_vertexArray[4 * (m_size * i + j) + 3] = sf::Vertex(sf::Vector2f(i + 1, j)*inv_size, color);
             }
         }
     }
