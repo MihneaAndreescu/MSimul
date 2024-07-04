@@ -14,6 +14,7 @@ private:
     static const float FRAMERATE_RELEASE;
     static const float FRAMERATE_DEBUG;
     static const float FRAMERATE;
+    static const int m_pushBucketSize = 5;
     static const int m_size = 200;
 
     sf::VertexArray m_vertexArray;
@@ -26,6 +27,8 @@ private:
     unsigned char m_newElements[m_size][m_size];
     unsigned char m_newExtra0[m_size][m_size];
 
+    unsigned char m_direction[m_size / m_pushBucketSize][m_size / m_pushBucketSize];
+
     RngSingleton& m_rngSingletonInstance;
 
     ParticlePhysicsTableSingleton();
@@ -33,7 +36,13 @@ private:
     std::vector<int> m_ysForReverse;
 
     void explodeBomb(int x, int y, int radius);
+    void generateForce(int x, int y);
+
 public:
+
+    // set and get for each cell
+    void setCellElement(int x, int y, char type);
+    char getCellElement(int x, int y);
 
     // for saving / loading progress
     void saveToFile(std::string filename);

@@ -1,4 +1,4 @@
-#include "TableSingleton.h"
+#include "ParticlePhysicsTableSingleton.h"
 
 const float ParticlePhysicsTableSingleton::FRAMERATE_RELEASE = 1.0f / 500.0f;
 const float ParticlePhysicsTableSingleton::FRAMERATE_DEBUG = 1.0f / 300.0f;
@@ -8,6 +8,13 @@ ParticlePhysicsTableSingleton::ParticlePhysicsTableSingleton() :
     m_vertexArray(sf::Quads, 4 * m_size * m_size),
     m_rngSingletonInstance(RngSingleton::getInstance())
 {
+    for (int i = 0; i < m_size / m_pushBucketSize; i++)
+    {
+        for (int j = 0; j < m_size / m_pushBucketSize; j++)
+        {
+            m_direction[i][j] = 0;
+        }
+    }
     m_colors[0] = sf::Color::Black;
     m_colors[1] = sf::Color::Blue;
     m_colors[2] = sf::Color(100, 100, 100);
@@ -85,24 +92,26 @@ void ParticlePhysicsTableSingleton::loadFromFile(std::string filename)
     std::string line;
     std::getline(fileIn, line);
 
-    if ((int)line.size() != 2 * m_size * m_size)
-    {
-        std::cerr << "File content does not match expected size.\n";
-        return;
-    }
+    // commented this in order to have backwards compatibility
+    //if ((int)line.size() != 2 * m_size * m_size)
+    //{
+    //    std::cerr << "File content does not match expected size.\n";
+    //    return;
+    //}
 
     int y = 0;
-    for (int i = 0; i < m_size; i++)
+
+    for (int i = 0; i < m_size && y < (int)line.size(); i++)
     {
-        for (int j = 0; j < m_size; j++)
+        for (int j = 0; j < m_size && y < (int)line.size(); j++)
         {
             m_elements[i][j] = line[y++];
         }
     }
 
-    for (int i = 0; i < m_size; i++)
+    for (int i = 0; i < m_size && y < (int)line.size(); i++)
     {
-        for (int j = 0; j < m_size; j++)
+        for (int j = 0; j < m_size && y < (int)line.size(); j++)
         {
             m_extra0[i][j] = line[y++];
         }
@@ -129,6 +138,50 @@ void ParticlePhysicsTableSingleton::explodeBomb(int x, int y, int radius)
     }
 }
 
+void ParticlePhysicsTableSingleton::generateForce(int x, int y)
+{
+    x /= m_pushBucketSize;
+    y /= m_pushBucketSize;
+    assert(0 <= x && x < m_size / m_pushBucketSize);
+    assert(0 <= y && y < m_size / m_pushBucketSize);
+    // 0 down
+    // 1 right
+    // 2 up
+    // 3 left
+    const int l = 10;
+    for (int i = x - l + 1; i <= x + l; i++)
+    {
+        for (int j = y - l + 1; j <= y + l; j++)
+        {
+            if (0 <= i && i < m_size / m_pushBucketSize && 0 <= j && j < m_size / m_pushBucketSize)
+            {
+                if (i <= x)
+                {
+                    if (j <= y)
+                    {
+                        m_direction[i][j] |= (1 << 0) | (1 << 3);
+                    }
+                    else
+                    {
+                        m_direction[i][j] |= (1 << 2) | (1 << 4);
+                    }
+                }
+                else
+                {
+                    if (j <= y)
+                    {
+                        m_direction[i][j] |= (1 << 0) | (1 << 1);
+                    }
+                    else
+                    {
+                        m_direction[i][j] |= (1 << 2) | (1 << 1);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void ParticlePhysicsTableSingleton::updatePhysics()
 {
     for (int i = 0; i < m_size; i++)
@@ -144,9 +197,20 @@ void ParticlePhysicsTableSingleton::updatePhysics()
         m_ysForReverse.clear();
         for (int x = 0; x < m_size; x++)
         {
+            for (int b = 0; b < 4; b++)
+            {
+                if ((m_direction[x / m_pushBucketSize][y / m_pushBucketSize] & (1 << b)) && m_rngSingletonInstance.getRawRandom() % 1000 == 0)
+                {
+                    m_direction[x / m_pushBucketSize][y / m_pushBucketSize] ^= (1 << b);
+                }
+            }
             if (m_elements[x][y] == 1)
             {
                 if (y == 0)
+                {
+                    continue;
+                }
+                if (y == m_size - 1)
                 {
                     continue;
                 }
@@ -158,6 +222,67 @@ void ParticlePhysicsTableSingleton::updatePhysics()
                 {
                     continue;
                 }
+                // 0 down
+                // 1 right
+                // 2 up
+                // 3 left
+                const int M = 3;
+                //if (m_direction[x / m_pushBucketSize][y / m_pushBucketSize] & (1 << 0))
+                //{
+                //    if (m_rngSingletonInstance.getRawRandom() % M == 0)
+                //    {
+                //        if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
+                //        {
+                //            //m_direction[x / m_pushBucketSize][(y - 1) / m_pushBucketSize] |= (1 << 0);
+                //            m_newElements[x][y - 1] = m_elements[x][y];
+                //            continue;
+                //        }
+                //    }
+                //}
+                if (m_direction[x / m_pushBucketSize][y / m_pushBucketSize] & (1 << 1))
+                {
+                    if (m_rngSingletonInstance.getRawRandom() % M == 0)
+                    {
+                        if (m_elements[x + 1][y] == 0)
+                        {
+                            m_direction[(x+1) / m_pushBucketSize][y / m_pushBucketSize] |= (1 << 1);
+                            m_newElements[x + 1][y] = m_elements[x][y];
+                            continue;
+                        }
+                    }
+                }
+                if (m_direction[x / m_pushBucketSize][y / m_pushBucketSize] & (1 << 2))
+                {
+                    if (m_rngSingletonInstance.getRawRandom() % M == 0)
+                    {
+                        if (m_elements[x][y + 1] == 0)
+                        {
+                            m_direction[x / m_pushBucketSize][(y+1) / m_pushBucketSize] |= (1 << 2);
+                            m_newElements[x][y + 1] = m_elements[x][y];
+                            continue;
+                        }
+                    }
+                }
+                if (m_direction[x / m_pushBucketSize][y / m_pushBucketSize] & (1 << 3))
+                {
+                    if (m_rngSingletonInstance.getRawRandom() % M == 0)
+                    {
+                        if (m_elements[x - 1][y] == 0 && m_newElements[x - 1][y] == 0)
+                        {
+                            m_direction[(x - 1) / m_pushBucketSize][y / m_pushBucketSize] |= (1 << 3);
+                            m_newElements[x - 1][y] = m_elements[x][y];
+                            continue;
+                        }
+                    }
+                }
+                //if (m_elements[x][y] && m_rngSingletonInstance.getRawRandom() % 10 == 0)
+                //{
+                //    if (m_elements[x + 1][y] == 0)
+                //    {
+                //        m_newElements[x + 1][y] = m_elements[x][y];
+                //        continue;
+                //    }
+                //}
                 assert(y - 1 >= 0);
                 if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
                 {
@@ -230,6 +355,10 @@ void ParticlePhysicsTableSingleton::updatePhysics()
             if (m_elements[x][y] == 3)
             {
                 if (y == 0)
+                {
+                    continue;
+                }
+                if (y == m_size - 1)
                 {
                     continue;
                 }
@@ -608,6 +737,9 @@ void ParticlePhysicsTableSingleton::updatePhysics()
                     {
                         explodeBomb(x, y, radius);
                     }
+
+                    generateForce(x, y);
+
                     m_newElements[x][y] = 7;
                     continue;
                 }
@@ -617,6 +749,9 @@ void ParticlePhysicsTableSingleton::updatePhysics()
                     {
                         explodeBomb(x, y, radius);
                     }
+
+                    generateForce(x, y);
+
                     m_newElements[x][y] = 7;
                     continue;
                 }
@@ -626,6 +761,10 @@ void ParticlePhysicsTableSingleton::updatePhysics()
                     {
                         explodeBomb(x, y, radius);
                     }
+                    
+
+                    generateForce(x, y);
+
                     m_newElements[x][y] = 7;
                     continue;
                 }
@@ -635,6 +774,10 @@ void ParticlePhysicsTableSingleton::updatePhysics()
                     {
                         explodeBomb(x, y, radius);
                     }
+                    
+
+                    generateForce(x, y);
+
                     m_newElements[x][y] = 7;
                     continue;
                 }
@@ -671,6 +814,21 @@ void ParticlePhysicsTableSingleton::updatePhysics()
             m_newExtra0[i][j] = m_extra0[i][j];
         }
     }
+}
+
+void ParticlePhysicsTableSingleton::setCellElement(int x, int y, char type)
+{
+    assert(0 <= x && x < m_size);
+    assert(0 <= y && y < m_size);
+    m_elements[x][y] = type;
+    m_extra0[x][y] = 0;
+}
+
+char ParticlePhysicsTableSingleton::getCellElement(int x, int y)
+{
+    assert(0 <= x && x < m_size);
+    assert(0 <= y && y < m_size);
+    return m_elements[x][y];
 }
 
 void ParticlePhysicsTableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)

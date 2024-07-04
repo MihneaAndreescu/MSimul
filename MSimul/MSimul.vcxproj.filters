@@ -18,7 +18,7 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TableSingleton.cpp">
+    <ClCompile Include="ParticlePhysicsTableSingleton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RngSingleton.cpp">
@@ -26,7 +26,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TableSingleton.h">
+    <ClInclude Include="ParticlePhysicsTableSingleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RngSingleton.h">
