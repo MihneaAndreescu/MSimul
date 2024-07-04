@@ -139,11 +139,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Rng.cpp" />
+    <ClCompile Include="RngSingleton.cpp" />
     <ClCompile Include="TableSingleton.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Rng.h" />
+    <ClInclude Include="RngSingleton.h" />
     <ClInclude Include="TableSingleton.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

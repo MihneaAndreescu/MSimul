@@ -21,7 +21,7 @@
     <ClCompile Include="TableSingleton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Rng.cpp">
+    <ClCompile Include="RngSingleton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,7 +29,7 @@
     <ClInclude Include="TableSingleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Rng.h">
+    <ClInclude Include="RngSingleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Rng.h"
+#include "RngSingleton.h"
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <cassert>
@@ -22,6 +22,8 @@ private:
 
     unsigned char m_elements[m_size][m_size], m_extra0[m_size][m_size];
     unsigned char m_newElements[m_size][m_size], m_newExtra0[m_size][m_size];
+
+    RngSingleton& rngSingletonInstance;
 
     TableSingleton();
 

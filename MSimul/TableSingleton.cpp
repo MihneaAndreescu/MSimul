@@ -4,7 +4,9 @@ const float TableSingleton::FRAMERATE_RELEASE = 1.0f / 500.0f;
 const float TableSingleton::FRAMERATE_DEBUG = 1.0f / 300.0f;
 const float TableSingleton::FRAMERATE = TableSingleton::FRAMERATE_DEBUG;
 
-TableSingleton::TableSingleton() : m_vertexArray(sf::Quads, 4 * m_size * m_size)
+TableSingleton::TableSingleton() : 
+    m_vertexArray(sf::Quads, 4 * m_size * m_size),
+    rngSingletonInstance(RngSingleton::getInstance())
 {
     m_colors[0] = sf::Color::Black;
     m_colors[1] = sf::Color::Blue;
@@ -238,7 +240,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                     assert(y - 1 >= 0);
                     if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
                     {
-                        if (getRandom() % 5 != 0)
+                        if (rngSingletonInstance.getRandom() % 5 != 0)
                         {
                             m_newElements[x][y] = m_elements[x][y];
                             continue;
@@ -252,7 +254,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                         m_newElements[x][y - 1] = 5;
                         continue;
                     }
-                    if (getRandom() & 1)
+                    if (rngSingletonInstance.getRandom() & 1)
                     {
                         if (x + 1 < m_size && m_newElements[x + 1][y - 1] == 0 && m_elements[x + 1][y - 1] == 0)
                         {
@@ -282,7 +284,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                             continue;
                         }
                     }
-                    if (getRandom() & 1)
+                    if (rngSingletonInstance.getRandom() & 1)
                     {
                         if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
                         {
@@ -321,7 +323,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                     assert(y - 1 >= 0);
                     if (m_elements[x][y - 1] == 0 && m_newElements[x][y - 1] == 0)
                     {
-                        if (getRandom() % 5 != 0)
+                        if (rngSingletonInstance.getRandom() % 5 != 0)
                         {
                             m_newElements[x][y] = m_elements[x][y];
                             continue;
@@ -377,7 +379,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                         m_elements[x - 1][y] = 5;
                         continue;
                     }
-                    if (getRandom() & 1)
+                    if (rngSingletonInstance.getRandom() & 1)
                     {
                         if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
                         {
@@ -418,7 +420,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                         m_elements[x][y + 1] = 0;
                         continue;
                     }
-                    if (getRandom() % 10 != 0)
+                    if (rngSingletonInstance.getRandom() % 10 != 0)
                     {
                         m_newElements[x][y] = m_elements[x][y];
                         continue;
@@ -430,7 +432,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                         m_newElements[x][y + 1] = m_elements[x][y];
                         continue;
                     }
-                    if (getRandom() & 1)
+                    if (rngSingletonInstance.getRandom() & 1)
                     {
                         if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
                         {
@@ -460,7 +462,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                             continue;
                         }
                     }
-                    if (getRandom() & 1)
+                    if (rngSingletonInstance.getRandom() & 1)
                     {
                         if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
                         {
@@ -484,13 +486,13 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                 }
                 if (m_elements[x][y] == 7)
                 {
-                    if (getRandom() % 400 == 0)
+                    if (rngSingletonInstance.getRandom() % 400 == 0)
                     {
                         m_newElements[x][y] = 8;
                         continue;
                     }
                     assert(m_newElements[x][y] == 0);
-                    if (getRandom() % 20 == 0)
+                    if (rngSingletonInstance.getRandom() % 20 == 0)
                     {
                         if (m_extra0[x][y] + 1 <= 2)
                         {
@@ -501,7 +503,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                     {
                         continue;
                     }
-                    if (getRandom() % 2 == 0)
+                    if (rngSingletonInstance.getRandom() % 2 == 0)
                     {
                         if (y + 1 < m_size && (m_elements[x][y + 1] == 1 || m_elements[x][y + 1] == 5))
                         {
@@ -516,7 +518,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                             continue;
                         }
                     }
-                    if (getRandom() % 10 != 0)
+                    if (rngSingletonInstance.getRandom() % 10 != 0)
                     {
                         m_newExtra0[x][y] = m_extra0[x][y];
                         m_newElements[x][y] = m_elements[x][y];
@@ -556,7 +558,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                         m_newElements[x][y] = m_elements[x][y];
                         continue;
                     }
-                    if (getRandom() & 1)
+                    if (rngSingletonInstance.getRandom() & 1)
                     {
                         if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
                         {
@@ -590,7 +592,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                             continue;
                         }
                     }
-                    if (getRandom() & 1)
+                    if (rngSingletonInstance.getRandom() & 1)
                     {
                         if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
                         {
@@ -609,7 +611,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                 }
                 if (m_elements[x][y] == 8)
                 {
-                    if (getRandom() % 400 == 0)
+                    if (rngSingletonInstance.getRandom() % 400 == 0)
                     {
                         continue;
                     }
@@ -618,7 +620,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                     {
                         continue;
                     }
-                    if (getRandom() % 10 != 0)
+                    if (rngSingletonInstance.getRandom() % 10 != 0)
                     {
                         m_newElements[x][y] = m_elements[x][y];
                         continue;
@@ -630,7 +632,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                         m_newElements[x][y + 1] = m_elements[x][y];
                         continue;
                     }
-                    if (getRandom() & 1)
+                    if (rngSingletonInstance.getRandom() & 1)
                     {
                         if (x + 1 < m_size && m_newElements[x + 1][y + 1] == 0 && m_elements[x + 1][y + 1] == 0)
                         {
@@ -660,7 +662,7 @@ void TableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
                             continue;
                         }
                     }
-                    if (getRandom() & 1)
+                    if (rngSingletonInstance.getRandom() & 1)
                     {
                         if (x + 1 < m_size && m_newElements[x + 1][y] == 0 && m_elements[x + 1][y] == 0)
                         {
@@ -771,7 +773,7 @@ void TableSingleton::prepDraw()
             sf::Color color = m_colors[m_elements[i][j]];
             if (m_elements[i][j] == 3)
             {
-                int ran = getRandom() % 2;
+                int ran = rngSingletonInstance.getRandom() % 2;
                 if (ran == 0)
                 {
                     color.r -= 50;
