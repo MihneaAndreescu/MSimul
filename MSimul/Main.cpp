@@ -13,7 +13,7 @@ int main()
     sf::View view;
     view.setSize(sf::Vector2f(tableSingletonInstance.getSize(), -tableSingletonInstance.getSize()));
     view.setCenter(sf::Vector2f(tableSingletonInstance.getSize(), tableSingletonInstance.getSize()) * 0.5f);
-    
+
     view.setSize(sf::Vector2f(1, -1));
     view.setCenter(sf::Vector2f(0.5, 0.5));
 
@@ -24,6 +24,9 @@ int main()
     int fps = 0;
     bool pressed = sf::Mouse::isButtonPressed(sf::Mouse::Left);
     float radius = 0.5 * 2;
+
+    bool isGlass = 1;
+    bool wasShiftG = 0;
 
     while (window.isOpen())
     {
@@ -61,12 +64,27 @@ int main()
                 tableSingletonInstance.loadFromFile(filename);
             }
         }
+        bool isShiftG = (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::G));
+        if (isShiftG && !wasShiftG)
+        {
+            //std::cout << " : " << isShiftG << " " << wasShiftG << " ---> " << isGlass << "\n";
+            isGlass ^= 1;
+        }
+        wasShiftG = isShiftG;
         float dt = frameClock.restart().asSeconds();
-        tableSingletonInstance.update(dt, mousePosition, radius);
-
+        tableSingletonInstance.update(dt, mousePosition, radius, isGlass);
         tableSingletonInstance.prepDraw();
         window.clear();
         window.draw(tableSingletonInstance);
+        //if (isGlass)
+        //{
+        //    std::cout << " is glass\n";
+        //    sf::RectangleShape r;
+        //    r.setFillColor(sf::Color::Yellow);
+        //    r.setSize(sf::Vector2f(0.1, 0.2));
+        //    r.setPosition(mousePositionOrig - r.getSize() * 0.5f);
+        //    window.draw(r);
+        //}
         fps++;
         if (fpsClock.getElapsedTime().asSeconds() >= 1)
         {

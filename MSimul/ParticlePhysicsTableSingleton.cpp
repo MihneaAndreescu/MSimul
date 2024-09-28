@@ -1,4 +1,5 @@
 #include "ParticlePhysicsTableSingleton.h"
+#include <algorithm>
 
 const float ParticlePhysicsTableSingleton::FRAMERATE_RELEASE = 1.0f / 500.0f;
 const float ParticlePhysicsTableSingleton::FRAMERATE_DEBUG = 1.0f / 300.0f;
@@ -184,6 +185,18 @@ void ParticlePhysicsTableSingleton::generateForce(int x, int y)
 
 void ParticlePhysicsTableSingleton::updatePhysics()
 {
+    sort(m_glassCells.begin(), m_glassCells.end());
+    m_glassCells.resize(std::unique(m_glassCells.begin(), m_glassCells.end()) - m_glassCells.begin());
+    std::vector<std::pair<std::pair<int, int>, int>> history;
+    for (auto& it : m_glassCells)
+    {
+        int x = it.first, y = it.second;
+        if (0 <= x && x < m_size && 0 <= y && y < m_size)
+        {
+            history.push_back({ {x, y}, m_elements[x][y] });
+            m_elements[x][y] = 2;
+        }
+    }
     for (int i = 0; i < m_size; i++)
     {
         for (int j = 0; j < m_size; j++)
@@ -814,6 +827,11 @@ void ParticlePhysicsTableSingleton::updatePhysics()
             m_newExtra0[i][j] = m_extra0[i][j];
         }
     }
+    for (auto& it : history)
+    {
+        int x = it.first.first, y = it.first.second, oldValue = it.second;
+        m_elements[x][y] = oldValue;
+    }
 }
 
 void ParticlePhysicsTableSingleton::setCellElement(int x, int y, char type)
@@ -831,8 +849,160 @@ char ParticlePhysicsTableSingleton::getCellElement(int x, int y)
     return m_elements[x][y];
 }
 
-void ParticlePhysicsTableSingleton::update(float dt, sf::Vector2f mousePosition, float radius)
+#include <iostream>
+
+void ParticlePhysicsTableSingleton::mv(int x1, int y1, int x2, int y2, int dimx, int dimy)
 {
+    for (int x = 0; x < m_size; x++)
+    {
+        for (int y = 0; y < m_size; y++)
+        {
+            m_newElements[x][y] = m_elements[x][y];
+            m_newExtra0[x][y] = m_extra0[x][y];
+        }
+    }
+    //std::cout << x1 << "..." << x1 + dimx - 1 << " and " << y1 << "..." << y1 + dimy - 1 << " ---> ";
+    //for (int i = 0; i < m_size; i++)
+    //{
+    //    for (int j = 0; j < m_size; j++)
+    //    {
+    //        if (m_elements[i][j] == 1)
+    //        {
+    //            if (!(x1 <= i && i < x1 + dimx && y1 <= j && j < y1 + dimy))
+    //            {
+    //                std::cout << "error = " << i << " " << j << "\n";
+    //            }
+    //        }
+    //    }
+    //}
+    //std::cout << "move is happening\n";
+    //std::cout << "\n";
+    for (int dx = 0; dx < dimx; dx++)
+    {
+        for (int dy = 0; dy < dimy; dy++)
+        {
+            int r1 = x1 + dx, c1 = y1 + dy;
+            int r2 = x2 + dx, c2 = y2 + dy;
+            if (0 <= r1 && r1 < m_size && 0 <= c1 && c1 < m_size)
+            {
+                //std::cout << (int) m_elements[r1][c1] << " ";
+                m_newElements[r1][c1] = 0;
+                //m_newExtra0[r1][c1] = 0;
+
+
+                //m_newExtra0[r1][c1] = 77;
+            }
+        }
+    }
+    for (int dx = 0; dx < dimx; dx++)
+    {
+        for (int dy = 0; dy < dimy; dy++)
+        {
+            if (0 <= x1 + dx && x1 + dx < m_size && 0 <= y1 + dy && y1 + dy < m_size)
+            {
+                if (0 <= x2 + dx && x2 + dx < m_size && 0 <= y2 + dy && y2 + dy < m_size)
+                {
+                    m_newElements[x2 + dx][y2 + dy] = m_elements[x1 + dx][y1 + dy];
+                    m_newExtra0[x2 + dx][y2 + dy] = m_extra0[x1 + dx][y1 + dy];
+                }
+            }
+        }
+        //std::cout << "\n";
+    }
+    for (int x = 0; x < m_size; x++)
+    {
+        for (int y = 0; y < m_size; y++)
+        {
+            m_elements[x][y] = m_newElements[x][y];
+            m_extra0[x][y] = m_newExtra0[x][y];
+        }
+    }
+
+}
+
+void ParticlePhysicsTableSingleton::moveLeft()
+{
+    int nwx = m_glass_x - 1, nwy = m_glass_y;
+    mv(m_glass_x - m_dimx, m_glass_y, nwx - m_dimx, nwy, 2 * m_dimx + 1, m_dimy + 1);
+    m_glass_x = nwx;
+    m_glass_y = nwy;
+}
+
+void ParticlePhysicsTableSingleton::moveRight()
+{
+    int nwx = m_glass_x + 1, nwy = m_glass_y;
+    mv(m_glass_x - m_dimx, m_glass_y, nwx - m_dimx, nwy, 2 * m_dimx + 1, m_dimy + 1);
+    m_glass_x = nwx;
+    m_glass_y = nwy;
+}
+
+void ParticlePhysicsTableSingleton::moveUp()
+{
+    int nwx = m_glass_x, nwy = m_glass_y + 1;
+    mv(m_glass_x - m_dimx, m_glass_y, nwx - m_dimx, nwy, 2 * m_dimx + 1, m_dimy + 1);
+    m_glass_x = nwx;
+    m_glass_y = nwy;
+}
+
+void ParticlePhysicsTableSingleton::moveDown()
+{
+    int nwx = m_glass_x, nwy = m_glass_y - 1;
+    mv(m_glass_x - m_dimx, m_glass_y, nwx - m_dimx, nwy, 2 * m_dimx + 1, m_dimy + 1);
+    m_glass_x = nwx;
+    m_glass_y = nwy;
+}
+
+void ParticlePhysicsTableSingleton::update(float dt, sf::Vector2f mousePosition, float radius, bool isGlass)
+{
+    m_glassCells.clear();
+    if (isGlass)
+    {
+        //int x = mousePosition.x, y = mousePosition.y;
+        for (int j = 0; j <= m_dimx; j++)
+        {
+            m_glassCells.push_back({ m_glass_x - j, m_glass_y });
+            m_glassCells.push_back({ m_glass_x + j, m_glass_y });
+        }
+        for (int j = 0; j <= m_dimy; j++)
+        {
+            m_glassCells.push_back({ m_glass_x - m_dimx, m_glass_y + j });
+            m_glassCells.push_back({ m_glass_x + m_dimx, m_glass_y + j });
+        }
+        //std::cout << " = " << mousePosition.x << " " << mousePosition.y << "\n";
+    }
+    if (m_historic.empty())
+    {
+        m_historic.push_back(0);
+        m_historic.push_back(0);
+        m_historic.push_back(0);
+        m_historic.push_back(0);
+    }
+    assert((int)m_historic.size() == 4);
+    const float coolDown = 0.01;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && m_historic[0] <= 0)
+    {
+        moveLeft();
+        m_historic[0] = coolDown;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && m_historic[1] <= 0)
+    {
+        moveRight();
+        m_historic[1] = coolDown;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && m_historic[2] <= 0)
+    {
+        moveUp();
+        m_historic[2] = coolDown;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && m_historic[3] <= 0)
+    {
+        moveDown();
+        m_historic[3] = coolDown;
+    }
+    for (auto& times : m_historic)
+    {
+        times -= dt;
+    }
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
     {
         for (int x = mousePosition.x - radius; x <= mousePosition.x + radius; x++)
@@ -908,12 +1078,12 @@ void ParticlePhysicsTableSingleton::update(float dt, sf::Vector2f mousePosition,
         }
     }
     m_elapsed += dt;
-
     while (m_elapsed >= FRAMERATE)
     {
         m_elapsed -= FRAMERATE;
         updatePhysics();
     }
+
 }
 
 int ParticlePhysicsTableSingleton::getSize()
@@ -957,6 +1127,22 @@ void ParticlePhysicsTableSingleton::prepDraw()
                     color = sf::Color::Red;
                 }
             }
+            if (m_extra0[i][j] == 77)
+            {
+                color = sf::Color::Yellow;
+            }
+            m_vertexArray[4 * (m_size * i + j)].color = color;
+            m_vertexArray[4 * (m_size * i + j) + 1].color = color;
+            m_vertexArray[4 * (m_size * i + j) + 2].color = color;
+            m_vertexArray[4 * (m_size * i + j) + 3].color = color;
+        }
+    }
+    for (auto& it : m_glassCells)
+    {
+        int i = it.first, j = it.second;
+        if (0 <= i && i < m_size && 0 <= j && j < m_size)
+        {
+            sf::Color color = sf::Color::Yellow;
             m_vertexArray[4 * (m_size * i + j)].color = color;
             m_vertexArray[4 * (m_size * i + j) + 1].color = color;
             m_vertexArray[4 * (m_size * i + j) + 2].color = color;
