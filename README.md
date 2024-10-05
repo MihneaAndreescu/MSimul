@@ -52,3 +52,15 @@
 - Set off a TNT explosion and observe how the shockwave interacts with nearby objects.
 - Simulate water pressure by pouring water into different containers.
 
+## Controls
+
+- **Move the Water Can**: Use the arrow keys to move the water can across the screen.
+- **Resize Elements**: Use the mouse scroll wheel to increase or decrease the size of the elements.
+- **Place Elements**: Press keys `1` through `9` while pressing the left mouse button to select and place various elements on the simulation screen.
+
+## Installation
+
+1. **Download SFML 2.6.1**: Follow the instructions on the [SFML download page](https://www.sfml-dev.org/download/sfml/2.6.1/) to download and install SFML 2.6.1 on your system.
+
+2. **Set Up SFML in Your Project**: Ensure that your project settings are configured to link against the SFML libraries. If you are using an IDE, you might need to set your project's linker settings to include the SFML library paths.
+
